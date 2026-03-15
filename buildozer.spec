@@ -5,26 +5,22 @@ package.name = rekapvoucher
 package.domain = org.junai
 
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,png,jpg,kv
 
 version = 1.0
 
-requirements = python3,kivy,openpyxl
+requirements = python3,kivy,openpyxl,requests,urllib3,chardet,idna,certifi
 
 orientation = portrait
 
 fullscreen = 0
 
-android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
-
 android.api = 33
 android.minapi = 21
 
+android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
+
 android.archs = arm64-v8a, armeabi-v7a
-
-android.allow_backup = True
-
-android.accept_sdk_license = True
 
 [buildozer]
 

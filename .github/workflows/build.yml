@@ -40,10 +40,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept Licenses
+      - name: Accept Android Licenses
         run: yes | sdkmanager --licenses
 
-      - name: Install Required Android Packages
+      - name: Install Android Packages
         run: |
           sdkmanager "platform-tools"
           sdkmanager "platforms;android-33"
@@ -51,6 +51,9 @@ jobs:
           sdkmanager "ndk;25.2.9519653"
 
       - name: Build APK
+        env:
+          ANDROIDSDK: /usr/local/lib/android/sdk
+          ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
           buildozer -v android debug
 

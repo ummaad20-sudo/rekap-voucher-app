@@ -9,15 +9,15 @@ source.include_exts = py,png,jpg,kv
 
 version = 1.0
 
-requirements = python3,kivy,openpyxl,requests,urllib3,chardet,idna,certifi
+requirements = python3,kivy,openpyxl
 
 orientation = portrait
-
 fullscreen = 0
 
 android.api = 33
 android.minapi = 21
 android.ndk = 25b
+android.build_tools = 33.0.2
 
 android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 

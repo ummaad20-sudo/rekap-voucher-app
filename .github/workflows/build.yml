@@ -17,43 +17,36 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk
-          sudo apt install -y python3-pip autoconf libtool pkg-config
-          sudo apt install -y zlib1g-dev libncurses5-dev libncursesw5-dev
+          sudo apt install -y autoconf libtool pkg-config zlib1g-dev
+          sudo apt install -y libncurses5-dev libncursesw5-dev
           sudo apt install -y libtinfo5 cmake libffi-dev libssl-dev
           sudo apt install -y build-essential ccache
 
-      - name: Install Python Packages
+      - name: Install Python tools
         run: |
           pip install --upgrade pip
           pip install Cython==0.29.36
           pip install buildozer
 
       - name: Install Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Install Android Build Tools
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk
-
-          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-
-          unzip -o commandlinetools-linux-*.zip
-
-          mv cmdline-tools $HOME/android-sdk/cmdline-tools/latest || true
-
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-          export PATH=$PATH:$ANDROID_HOME/platform-tools
-
-          yes | sdkmanager --licenses
-
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-33"
+          sdkmanager "build-tools;33.0.2"
 
       - name: Build APK
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

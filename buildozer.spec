@@ -17,6 +17,7 @@ fullscreen = 0
 
 android.api = 33
 android.minapi = 21
+android.ndk = 25b
 
 android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 

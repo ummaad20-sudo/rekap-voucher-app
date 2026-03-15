@@ -37,10 +37,7 @@ jobs:
           pip install Cython==0.29.36
           pip install buildozer
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Required Android Packages
+      - name: Install Android SDK
         run: |
           yes | sdkmanager --licenses
           sdkmanager "platform-tools"
@@ -52,6 +49,7 @@ jobs:
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROIDSDK: /usr/local/lib/android/sdk
+          ANDROIDNDK: /usr/local/lib/android/sdk/ndk/25.2.9519653
         run: |
           buildozer -v android debug
 

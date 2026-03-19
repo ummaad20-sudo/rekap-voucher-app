@@ -1,9 +1,11 @@
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.button import Button
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.popup import Popup
+from kivy.uix.textinput import TextInput
 from kivy.graphics import Color, Rectangle
 from kivy.utils import get_color_from_hex
 from kivy.core.clipboard import Clipboard
@@ -17,94 +19,77 @@ class RekapApp(App):
 
     def build(self):
 
+        self.data_excel = []
         self.data_manual = []
 
         root = BoxLayout(orientation='vertical', padding=15, spacing=10)
 
-        # Background
         with root.canvas.before:
             Color(rgba=get_color_from_hex("#1e272e"))
             self.bg = Rectangle(size=root.size, pos=root.pos)
 
         root.bind(size=self.update_bg, pos=self.update_bg)
 
-        # TITLE
         title = Label(
-            text="[b]REKAP VOUCHER PRO[/b]",
+            text="[b]REKAP VOUCHER GABUNGAN[/b]",
             markup=True,
             size_hint=(1, 0.08),
-            font_size=22,
-            color=(1, 1, 1, 1)
+            color=(1,1,1,1)
         )
         root.add_widget(title)
 
-        # =====================
-        # INPUT FILE PATH
-        # =====================
-        self.file_input = TextInput(
-            hint_text="Path Excel\nContoh:\n/storage/emulated/0/Download/data.xlsx",
-            size_hint=(1, 0.12)
-        )
-        root.add_widget(self.file_input)
-
-        btn_baca = Button(
-            text="BACA FILE EXCEL",
+        # =======================
+        # BUTTON FILE EXCEL
+        # =======================
+        btn_file = Button(
+            text="PILIH FILE EXCEL",
             background_normal="",
             background_color=get_color_from_hex("#e67e22"),
             size_hint=(1, 0.08)
         )
-        btn_baca.bind(on_press=self.baca_file)
-        root.add_widget(btn_baca)
+        btn_file.bind(on_press=self.buka_file)
+        root.add_widget(btn_file)
 
-        # =====================
+        # =======================
         # INPUT MANUAL
-        # =====================
-        self.tanggal = TextInput(
-            hint_text="Tanggal (YYYY/MM/DD)",
-            size_hint=(1, 0.08)
-        )
-
-        self.grup = TextInput(
-            hint_text="Grup",
-            size_hint=(1, 0.08)
-        )
-
-        self.harga = TextInput(
-            hint_text="Harga",
-            input_filter="int",
-            size_hint=(1, 0.08)
-        )
+        # =======================
+        self.tanggal = TextInput(hint_text="Tanggal (YYYY/MM/DD)", size_hint=(1,0.07))
+        self.grup = TextInput(hint_text="Grup", size_hint=(1,0.07))
+        self.harga = TextInput(hint_text="Harga", input_filter="int", size_hint=(1,0.07))
 
         root.add_widget(self.tanggal)
         root.add_widget(self.grup)
         root.add_widget(self.harga)
 
         btn_tambah = Button(
-            text="TAMBAH DATA",
+            text="TAMBAH DATA MANUAL",
             background_normal="",
             background_color=get_color_from_hex("#27ae60"),
-            size_hint=(1, 0.08)
+            size_hint=(1,0.08)
         )
         btn_tambah.bind(on_press=self.tambah_manual)
         root.add_widget(btn_tambah)
 
+        # =======================
+        # BUTTON REKAP GABUNGAN
+        # =======================
         btn_rekap = Button(
-            text="REKAP MANUAL",
+            text="REKAP SEMUA DATA",
             background_normal="",
             background_color=get_color_from_hex("#2980b9"),
-            size_hint=(1, 0.08)
+            size_hint=(1,0.08)
         )
-        btn_rekap.bind(on_press=self.rekap_manual)
+        btn_rekap.bind(on_press=self.rekap_semua)
         root.add_widget(btn_rekap)
 
-        # =====================
+        # =======================
         # HASIL
-        # =====================
+        # =======================
         self.result = Label(
-            text="Menunggu data...",
+            text="Belum ada data...",
             markup=True,
             size_hint_y=None,
-            color=(1, 1, 1, 1),
+            color=(1,1,1,1),
             halign="left",
             valign="top"
         )
@@ -114,75 +99,73 @@ class RekapApp(App):
             width=lambda s, w: s.setter('text_size')(s, (w - 20, None))
         )
 
-        scroll = ScrollView(size_hint=(1, 0.4))
+        scroll = ScrollView(size_hint=(1,0.4))
         scroll.add_widget(self.result)
         root.add_widget(scroll)
 
-        # =====================
-        # BUTTON BAWAH
-        # =====================
+        # =======================
+        # COPY
+        # =======================
         btn_copy = Button(
             text="COPY HASIL",
             background_normal="",
             background_color=get_color_from_hex("#8e44ad"),
-            size_hint=(1, 0.07)
+            size_hint=(1,0.07)
         )
         btn_copy.bind(on_press=self.copy_hasil)
         root.add_widget(btn_copy)
 
-        self.notif = Label(
-            text="",
-            size_hint=(1, 0.05),
-            color=(0.9, 0.9, 0.9, 1)
-        )
+        self.notif = Label(text="", size_hint=(1,0.05))
         root.add_widget(self.notif)
 
         return root
 
-    # =====================
-    # BACKGROUND
-    # =====================
     def update_bg(self, instance, value):
         self.bg.size = instance.size
         self.bg.pos = instance.pos
 
-    # =====================
-    # FORMAT
-    # =====================
     def rupiah(self, x):
         return "Rp {:,}".format(int(x)).replace(",", ".")
 
-    # =====================
-    # COPY
-    # =====================
-    def copy_hasil(self, instance):
-        Clipboard.copy(self.result.text)
-        self.notif.text = "✔ Hasil disalin"
+    # =======================
+    # FILE EXCEL
+    # =======================
+    def buka_file(self, instance):
 
-    # =====================
-    # BACA EXCEL
-    # =====================
-    def baca_file(self, instance):
+        chooser = FileChooserListView(
+            path="/storage/emulated/0",
+            filters=["*.xlsx"]
+        )
 
-        path = self.file_input.text.strip()
+        popup = Popup(
+            title="Pilih File Excel",
+            content=chooser,
+            size_hint=(0.9,0.9)
+        )
 
-        if not path:
-            self.notif.text = "Isi path file dulu!"
+        chooser.bind(
+            on_submit=lambda x, selection, touch:
+            self.load_excel(selection, popup)
+        )
+
+        popup.open()
+
+    def load_excel(self, selection, popup):
+
+        if not selection:
             return
+
+        path = selection[0]
+        popup.dismiss()
 
         try:
             wb = load_workbook(path)
             sheet = wb.active
-        except Exception as e:
-            self.result.text = f"[color=ff4444]Gagal buka file\n{e}[/color]"
+        except:
+            self.notif.text = "Gagal buka file"
             return
 
-        self.proses_excel(sheet)
-
-    def proses_excel(self, sheet):
-
-        rekap = defaultdict(lambda: {"jumlah": 0, "total": 0})
-        total_harian = defaultdict(int)
+        self.data_excel.clear()
 
         header = [cell.value for cell in sheet[1]]
 
@@ -191,7 +174,7 @@ class RekapApp(App):
             i_harga = header.index("Harga")
             i_tgl = header.index("Diaktifkan di")
         except:
-            self.result.text = "[color=ff4444]Header tidak sesuai[/color]"
+            self.notif.text = "Header salah"
             return
 
         for row in sheet.iter_rows(min_row=2, values_only=True):
@@ -212,17 +195,13 @@ class RekapApp(App):
                 except:
                     continue
 
-                key = (tgl, grup)
+                self.data_excel.append((tgl, grup, harga))
 
-                rekap[key]["jumlah"] += 1
-                rekap[key]["total"] += harga
-                total_harian[tgl] += harga
+        self.notif.text = "✔ Data Excel masuk"
 
-        self.tampilkan_hasil(rekap, total_harian)
-
-    # =====================
+    # =======================
     # INPUT MANUAL
-    # =====================
+    # =======================
     def tambah_manual(self, instance):
 
         tgl = self.tanggal.text.strip()
@@ -230,14 +209,14 @@ class RekapApp(App):
         hrg = self.harga.text.strip()
 
         if not tgl or not grp or not hrg:
-            self.notif.text = "Isi semua data!"
+            self.notif.text = "Isi semua!"
             return
 
         try:
             datetime.strptime(tgl, "%Y/%m/%d")
             hrg = int(hrg)
         except:
-            self.notif.text = "Format salah!"
+            self.notif.text = "Format salah"
             return
 
         self.data_manual.append((tgl, grp, hrg))
@@ -246,36 +225,33 @@ class RekapApp(App):
         self.grup.text = ""
         self.harga.text = ""
 
-        self.notif.text = "✔ Data ditambahkan"
+        self.notif.text = "✔ Data manual masuk"
 
-    def rekap_manual(self, instance):
+    # =======================
+    # REKAP GABUNGAN
+    # =======================
+    def rekap_semua(self, instance):
 
-        if not self.data_manual:
-            self.result.text = "Belum ada data"
+        semua = self.data_excel + self.data_manual
+
+        if not semua:
+            self.result.text = "Tidak ada data"
             return
 
-        rekap = defaultdict(lambda: {"jumlah": 0, "total": 0})
+        rekap = defaultdict(lambda: {"jumlah":0, "total":0})
         total_harian = defaultdict(int)
 
-        for tgl, grp, hrg in self.data_manual:
+        for tgl, grp, hrg in semua:
             key = (tgl, grp)
             rekap[key]["jumlah"] += 1
             rekap[key]["total"] += hrg
             total_harian[tgl] += hrg
 
-        self.tampilkan_hasil(rekap, total_harian)
+        hasil = "[b]===== HASIL REKAP GABUNGAN =====[/b]\n\n"
 
-    # =====================
-    # TAMPILKAN HASIL
-    # =====================
-    def tampilkan_hasil(self, rekap, total_harian):
-
-        hasil = "[b]===== HASIL REKAP =====[/b]\n\n"
-
-        sorted_data = sorted(rekap.items())
         last = None
 
-        for (tgl, grp), val in sorted_data:
+        for (tgl, grp), val in sorted(rekap.items()):
 
             if last and tgl != last:
                 hasil += f"[color=00ffcc][b]TOTAL : {self.rupiah(total_harian[last])}[/b][/color]\n\n"
@@ -290,11 +266,12 @@ class RekapApp(App):
             last = tgl
 
         grand = sum(total_harian.values())
+
         hasil += f"\n[color=FFD700][b]GRAND TOTAL : {self.rupiah(grand)}[/b][/color]"
 
         self.result.text = hasil
-        self.notif.text = "✔ Rekap selesai"
+        self.notif.text = "✔ Rekap gabungan selesai"
 
-
-if __name__ == "__main__":
-    RekapApp().run()
+    def copy_hasil(self, instance):
+        Clipboard.copy(self.result.text)
+        self.notif.text = "✔ Disalin"
